@@ -9,14 +9,18 @@ import android.os.Bundle;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.FrameLayout;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentManager;
+import androidx.lifecycle.Lifecycle;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
 import androidx.viewpager2.widget.ViewPager2;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,12 +28,8 @@ public class Activity extends AppCompatActivity {
 
     public static ViewPager2 mViewPager;
     private ViewPagerFragmentStateAdapter mAdapter;
-
-    public static void start(Context context) {
-        Intent starter = new Intent(context, Activity.class);
-        context.startActivity(starter);
-    }
     List<Fragment> fragments = new ArrayList<>();
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -37,12 +37,41 @@ public class Activity extends AppCompatActivity {
         getWindow().setFormat(PixelFormat.TRANSLUCENT); //状态栏透明
         fullScreen();
         mViewPager = findViewById(R.id.viewpager2);
-        mAdapter = new ViewPagerFragmentStateAdapter(getSupportFragmentManager());
+        mAdapter = new ViewPagerFragmentStateAdapter(this);
         mViewPager.setAdapter(mAdapter);
         mViewPager.setOrientation(ViewPager2.ORIENTATION_VERTICAL); //控制为上下切换  默认为左右切换
         mViewPager.setPageTransformer(new MyPageTransformer());
         fragments.add(new Fragment1(mViewPager));
         fragments.add(new Fragment2(mViewPager));
+    }
+
+    class ViewPagerFragmentStateAdapter extends FragmentStateAdapter {
+        public ViewPagerFragmentStateAdapter(@NonNull FragmentActivity fragmentActivity) {
+            super(fragmentActivity);
+        }
+
+        public ViewPagerFragmentStateAdapter(@NonNull Fragment fragment) {
+            super(fragment);
+        }
+
+        public ViewPagerFragmentStateAdapter(@NonNull FragmentManager fragmentManager, @NonNull Lifecycle lifecycle) {
+            super(fragmentManager, lifecycle);
+        }
+
+        @NonNull
+        @Override
+        public Fragment createFragment(int position) {
+            return fragments.get(position);
+        }
+
+        @Override
+        public int getItemCount() {
+            return fragments.size();
+        }
+    }
+
+    public static void setCurrentItem(int position) {
+        mViewPager.setCurrentItem(position);
     }
 
     private void fullScreen() {
@@ -70,28 +99,4 @@ public class Activity extends AppCompatActivity {
             }
         }
     }
-    class ViewPagerFragmentStateAdapter extends FragmentStateAdapter {
-
-
-        public ViewPagerFragmentStateAdapter(@NonNull FragmentManager fragmentManager) {
-            super(fragmentManager);
-        }
-
-        @NonNull
-        @Override
-        public Fragment getItem(int position) {
-                return fragments.get(position);
-        }
-
-        /**页面个数*/
-        @Override
-        public int getItemCount() {
-            return fragments.size();
-        }
-    }
-
-    public static void setCurrentItem(int position){
-        mViewPager.setCurrentItem(position);
-    }
-
 }
